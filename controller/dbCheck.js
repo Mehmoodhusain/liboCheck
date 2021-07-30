@@ -18,18 +18,22 @@ module.exports = {
 
   databaseCheck: function () {
     let done = true
-    let dbCheckCron = cron.schedule('*/5 * * * *', async function () {
-      console.log(done)
-      if(done==false)console.log("SKIPPING CRON")
-      if (done==true){
+    let dbCheckCron = cron.schedule('*/5 * * * * *', async function () {
+      if (done == true) {
         done = false
         let transaction = await Transaction.find();
-        let block = await Block.find().sort({_id:1});
+        let block = await Block.find().sort({
+          _id: 1
+        });
         let node = await Node.find();
         let supply = await Supply.find();
-        if (!transaction)
+        txsError = 0
+        if (!transaction){
           console.log("TX NOT FOUND")
-  
+          txsError+=1
+        }
+          
+
         if (!supply)
           console.log("SUPPLY NOT FOUND")
         else {
@@ -38,7 +42,7 @@ module.exports = {
             supplyError += 1
           }
         }
-  
+
         if (!node)
           console.log("NODE NOT FOUND")
         else {
@@ -51,25 +55,25 @@ module.exports = {
           console.log("BLOCK NOT FOUND")
         else {
           blockError = 0
-          console.log("\nBLOCKS LENGTH:\t",block.length)
-          console.log("BLOCKS WITH ERRORS")
           for (let i = 0; i < block.length - 1; i++)
             if (block[i].block.header.height != block[i + 1].block.header.height - 1) {
               blockError += 1
               console.log(block[i].block.header.height, "\t", block[i + 1].block.header.height)
             }
         }
-        console.log("\nSUPPLY LENGTH: ", supply.length)
-        console.log("BLOCK LENGTH: ", block.length)
-        console.log("NODE LENGTH: ", node.length)
-        console.log("TXS LENGTH: ", transaction.length)
-        console.log("\nSUPPLY ERROR: ", supplyError)
-        console.log("BLOCK ERROR: ", blockError)
-        console.log("NODE ERROR: ", nodeError)
-        done = true
-        if(done==true){
-          console.log("MOVING TO NEXT CRON SESSION")
+        function Records(length, error) {
+          this.LENGTH = length;
+          this.ERRORS = error;
         }
+        
+        let supplyRecord = new Records(supply.length, supplyError);
+        let nodeRecord = new Records(node.length, nodeError);
+        let blockRecord = new Records(block.length, blockError);
+        let txsRecord = new Records(transaction.length, txsError)
+        
+        console.table({'SUPPLY':supplyRecord, 'NODE':nodeRecord, 'BLOCK':blockRecord, 'TRANSACTION':txsRecord});
+
+        done = true
       }
     });
   },
