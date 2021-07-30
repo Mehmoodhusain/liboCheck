@@ -1,0 +1,20 @@
+{
+  "name": "vidly",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon server",
+    "socket": "nodemon socket",
+    "test": "mocha",
+    "coverage": "nyc npm test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.13.2",
+    "node-cron": "^3.0.0"
+  }
+}
